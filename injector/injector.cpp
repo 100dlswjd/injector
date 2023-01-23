@@ -1,4 +1,6 @@
 #include "injector.h"
+#include <QStringList>
+#include <QFileDialog>
 #include <QMessageBox>
 #include <Windows.h>
 #include <TlHelp32.h>
@@ -10,6 +12,7 @@ injector::injector(QWidget *parent)
 {
     ui.setupUi(this);
     connect(ui.pushButton_process_refresh, &QPushButton::clicked, this, &injector::process_refresh_btn_click_handler);
+    connect(ui.pushButton_file_search, &QPushButton::clicked, this, &injector::file_search_btn_click_handler);
     connect(ui.listWidget_process_list, &QListWidget::itemClicked, this, &injector::process_list_item_click_handler);
 }
 
@@ -46,9 +49,19 @@ void injector::process_list_item_click_handler()
     process_name = item->text();
 }
 
-
-void injector::fild_search_btn_click_handler()
-{ }
+void injector::file_search_btn_click_handler()
+{ 
+    QFileDialog dialog(this);
+    QStringList fileNames;
+    dialog.setNameFilter(tr("dll file (*.dll)"));
+    if (dialog.exec())
+    {
+        fileNames = dialog.selectedFiles();
+        QString dll_path = fileNames.join("");
+        ui.lineEdit_dll_path->setText(dll_path);
+        return;
+    }
+}
 
 void injector::inject_btn_click_handler()
 { }
