@@ -1,12 +1,15 @@
 #include "injector.h"
+#include <QMessageBox>
 #include <Windows.h>
 #include <TlHelp32.h>
 
 injector::injector(QWidget *parent)
     : QMainWindow(parent)
 {
+    QString process_name[MAX_PATH] = {0,};
     ui.setupUi(this);
     connect(ui.pushButton_process_refresh, &QPushButton::clicked, this, &injector::process_refresh_btn_click_handler);
+    connect(ui.listWidget_process_list, &QListWidget::itemClicked, this, &injector::process_list_item_click_handler);
 }
 
 injector::~injector()
@@ -33,6 +36,13 @@ void injector::process_refresh_btn_click_handler()
         ui.listWidget_process_list->addItem(process_name);
     } while (Process32Next(hSnapShot, &pe));
     CloseHandle(hSnapShot);
+}
+
+void injector::process_list_item_click_handler()
+{
+    QListWidgetItem* item = ui.listWidget_process_list->currentItem();
+    ui.lineEdit_process_name->setText(item->text());
+    return;
 }
 
 

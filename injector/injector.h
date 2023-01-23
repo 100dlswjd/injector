@@ -13,6 +13,7 @@ public:
 
 public slots:
     void process_refresh_btn_click_handler();
+    void process_list_item_click_handler();
     void fild_search_btn_click_handler();
     void inject_btn_click_handler();
 private:
