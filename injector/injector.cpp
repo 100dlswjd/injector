@@ -6,6 +6,8 @@
 #include <TlHelp32.h>
 
 QString process_name;
+QString dll_path;
+QString temp = "";
 
 injector::injector(QWidget *parent)
     : QMainWindow(parent)
@@ -47,6 +49,11 @@ void injector::process_list_item_click_handler()
     QListWidgetItem* item = ui.listWidget_process_list->currentItem();
     ui.lineEdit_process_name->setText(item->text());
     process_name = item->text();
+
+    if (dll_path != temp)
+    {
+        ui.pushButton_inject->setEnabled(TRUE);
+    }
 }
 
 void injector::file_search_btn_click_handler()
@@ -57,9 +64,13 @@ void injector::file_search_btn_click_handler()
     if (dialog.exec())
     {
         fileNames = dialog.selectedFiles();
-        QString dll_path = fileNames.join("");
+        dll_path = fileNames.join("");
         ui.lineEdit_dll_path->setText(dll_path);
-        return;
+
+        if (process_name != temp)
+        {
+            ui.pushButton_inject->setEnabled(TRUE);
+        }
     }
 }
 
