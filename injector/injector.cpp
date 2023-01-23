@@ -3,10 +3,11 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
+QString process_name;
+
 injector::injector(QWidget *parent)
     : QMainWindow(parent)
 {
-    QString process_name[MAX_PATH] = {0,};
     ui.setupUi(this);
     connect(ui.pushButton_process_refresh, &QPushButton::clicked, this, &injector::process_refresh_btn_click_handler);
     connect(ui.listWidget_process_list, &QListWidget::itemClicked, this, &injector::process_list_item_click_handler);
@@ -42,7 +43,7 @@ void injector::process_list_item_click_handler()
 {
     QListWidgetItem* item = ui.listWidget_process_list->currentItem();
     ui.lineEdit_process_name->setText(item->text());
-    return;
+    process_name = item->text();
 }
 
 
