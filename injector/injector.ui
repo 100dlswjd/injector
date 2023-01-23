@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>311</width>
-    <height>402</height>
+    <width>276</width>
+    <height>443</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -60,6 +60,36 @@
          <widget class="QPushButton" name="pushButton_process_refresh">
           <property name="text">
            <string>refresh</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <property name="leftMargin">
+         <number>4</number>
+        </property>
+        <property name="topMargin">
+         <number>4</number>
+        </property>
+        <property name="rightMargin">
+         <number>4</number>
+        </property>
+        <property name="bottomMargin">
+         <number>4</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="label_process_name">
+          <property name="text">
+           <string>process name </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_process_name">
+          <property name="enabled">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -140,7 +170,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>311</width>
+     <width>276</width>
      <height>22</height>
     </rect>
    </property>
