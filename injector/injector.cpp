@@ -80,14 +80,18 @@ bool inject_dll(DWORD dwPID, QString DllPath)
     HANDLE hProcess = NULL, hThread = NULL;
     HMODULE hMod = NULL;
     LPVOID pRemoteBuf = NULL;
-    DWORD dwBufSize = (DWORD)DllPath.size() * sizeof(wchar_t);
+    QByteArray bArray = DllPath.toLatin1();
+    int length = bArray.size();
+    char* tBuffer = bArray.data();
+    DWORD dwBufSize = (DWORD)length * sizeof(char);
     LPTHREAD_START_ROUTINE pThreadProc;
+
 
     if (!(hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID)))
         return FALSE;
 
     pRemoteBuf = VirtualAllocEx(hProcess, NULL, dwBufSize, MEM_COMMIT, PAGE_READWRITE);
-    WriteProcessMemory(hProcess, pRemoteBuf, DllPath, dwBufSize, NULL);
+    WriteProcessMemory(hProcess, pRemoteBuf, tBuffer, dwBufSize, NULL);
 
     hMod = GetModuleHandle(L"kernel32.dll");
     pThreadProc = (LPTHREAD_START_ROUTINE)GetProcAddress(hMod, "LoadLibraryW");
