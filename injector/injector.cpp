@@ -1,4 +1,5 @@
 #include "injector.h"
+#include <Qstring>
 #include <QStringList>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -38,8 +39,8 @@ void injector::process_refresh_btn_click_handler()
 
     do
     {
-        QString process_name = QString::fromWCharArray(pe.szExeFile);
-        ui.listWidget_process_list->addItem(process_name);
+        process_name = QString::fromWCharArray(pe.szExeFile);
+        ui.listWidget_process_list->addItem(process_name);        
     } while (Process32Next(hSnapShot, &pe));
     CloseHandle(hSnapShot);
 }
@@ -74,5 +75,52 @@ void injector::file_search_btn_click_handler()
     }
 }
 
+bool inject_dll(DWORD dwPID, QString DllPath)
+{
+    HANDLE hProcess = NULL, hThread = NULL;
+    HMODULE hMod = NULL;
+    LPVOID pRemoteBuf = NULL;
+    DWORD dwBufSize = (DWORD)DllPath.size() * sizeof(wchar_t);
+    LPTHREAD_START_ROUTINE pThreadProc;
+
+    if (!(hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID)))
+        return FALSE;
+
+    pRemoteBuf = VirtualAllocEx(hProcess, NULL, dwBufSize, MEM_COMMIT, PAGE_READWRITE);
+    WriteProcessMemory(hProcess, pRemoteBuf, DllPath, dwBufSize, NULL);
+
+    hMod = GetModuleHandle(L"kernel32.dll");
+    pThreadProc = (LPTHREAD_START_ROUTINE)GetProcAddress(hMod, "LoadLibraryW");
+
+    hThread = CreateRemoteThread(hProcess, NULL, 0, pThreadProc, pRemoteBuf, 0, NULL);
+    WaitForSingleObject(hThread, INFINITE);
+
+    CloseHandle(hThread);
+    CloseHandle(hProcess);
+    return TRUE;
+}
+
 void injector::inject_btn_click_handler()
-{ }
+{ 
+    DWORD dwPID = 0;
+    HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+
+    if (hSnapShot == INVALID_HANDLE_VALUE)
+        return;
+
+    PROCESSENTRY32 pe = { 0, };
+    pe.dwSize = sizeof(pe);
+
+    Process32First(hSnapShot, &pe);
+    
+    do
+    {
+        if (process_name == QString::fromWCharArray(pe.szExeFile))
+        {
+            dwPID = pe.th32ProcessID;
+            inject_dll(dwPID, dll_path);
+            break;
+        }
+    } while (Process32Next(hSnapShot, &pe));
+    CloseHandle(hSnapShot);
+}
