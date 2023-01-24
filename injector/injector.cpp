@@ -16,6 +16,7 @@ injector::injector(QWidget *parent)
     ui.setupUi(this);
     connect(ui.pushButton_process_refresh, &QPushButton::clicked, this, &injector::process_refresh_btn_click_handler);
     connect(ui.pushButton_file_search, &QPushButton::clicked, this, &injector::file_search_btn_click_handler);
+    connect(ui.pushButton_inject, &QPushButton::clicked, this, &injector::inject_btn_click_handler);
     connect(ui.listWidget_process_list, &QListWidget::itemClicked, this, &injector::process_list_item_click_handler);
 }
 
@@ -127,4 +128,5 @@ void injector::inject_btn_click_handler()
         }
     } while (Process32Next(hSnapShot, &pe));
     CloseHandle(hSnapShot);
+    ui.pushButton_inject->setEnabled(FALSE);
 }
