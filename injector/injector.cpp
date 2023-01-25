@@ -3,8 +3,7 @@
 #include <QStringList>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <Windows.h>
-#include <TlHelp32.h>
+
 
 QString process_name;
 QString dll_path;
@@ -18,32 +17,69 @@ injector::injector(QWidget *parent)
     connect(ui.pushButton_file_search, &QPushButton::clicked, this, &injector::file_search_btn_click_handler);
     connect(ui.pushButton_inject, &QPushButton::clicked, this, &injector::inject_btn_click_handler);
     connect(ui.listWidget_process_list, &QListWidget::itemClicked, this, &injector::process_list_item_click_handler);
+    process_refresh_btn_click_handler();
 }
 
 injector::~injector()
 {}
 
-void injector::process_refresh_btn_click_handler()
-{ 
-    ui.listWidget_process_list->clear();
+bool injector::get_process_list(PROCESSENTRY32* proc_list, int size, int *return_size)
+{
+    if (size == 0)
+        return FALSE;
     HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
     if (hSnapShot == INVALID_HANDLE_VALUE)
-        return;
+        return FALSE;
     PROCESSENTRY32 pe = { 0, };
     pe.dwSize = sizeof(pe);
 
     if (!Process32First(hSnapShot, &pe))
     {
         CloseHandle(hSnapShot);
+        return FALSE;
+    }
+
+    int cur_idx = 0;
+    do
+    {
+        /*
+        process_name = QString::fromWCharArray(pe.szExeFile);
+        ui.listWidget_process_list->addItem(process_name);
+        */
+        proc_list[cur_idx++] = pe;
+        if (cur_idx >= size)
+            break;
+    } while (Process32Next(hSnapShot, &pe));
+    *return_size = cur_idx;
+    CloseHandle(hSnapShot);
+    return TRUE;
+}
+
+void injector::process_refresh_btn_click_handler()
+{ 
+    ui.listWidget_process_list->clear();
+    //PROCESSENTRY32 pe[320];
+    //int size = sizeof(pe) / sizeof(PROCESSENTRY32);
+
+    int size = 255;
+    PROCESSENTRY32* pe = (PROCESSENTRY32*)malloc(sizeof(PROCESSENTRY32) * size);
+
+    if (pe == NULL)
+        return;
+
+    int return_size = 0;
+    if (!get_process_list(pe, size, &return_size))
+    {
+        free(pe);
         return;
     }
 
-    do
+    for (int idx = 0; idx < return_size ; idx++)
     {
-        process_name = QString::fromWCharArray(pe.szExeFile);
-        ui.listWidget_process_list->addItem(process_name);        
-    } while (Process32Next(hSnapShot, &pe));
-    CloseHandle(hSnapShot);
+        QString name = QString::fromWCharArray(pe[idx].szExeFile);
+        ui.listWidget_process_list->addItem(name);
+    } 
+    free(pe);
 }
 
 void injector::process_list_item_click_handler()
@@ -106,6 +142,33 @@ bool inject_dll(DWORD dwPID, QString DllPath)
 void injector::inject_btn_click_handler()
 { 
     DWORD dwPID = 0;
+    //PROCESSENTRY32 pe[320];
+    //int size = sizeof(pe) / sizeof(PROCESSENTRY32);
+
+    int size = 255;
+    PROCESSENTRY32* pe = (PROCESSENTRY32*)malloc(sizeof(PROCESSENTRY32) * size);
+
+    if (pe == NULL)
+        return;
+
+    int return_size = 0;
+    if (!get_process_list(pe, size, &return_size))
+    {
+        free(pe);
+        return;
+    }
+
+    for (int idx = 0; idx < return_size; idx++)
+    {
+        if (process_name == QString::fromWCharArray(pe[idx].szExeFile))
+        {
+            dwPID = pe[idx].th32ProcessID;
+            inject_dll(dwPID, dll_path);
+        }
+    }
+    
+    /*
+    DWORD dwPID = 0;
     HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
 
     if (hSnapShot == INVALID_HANDLE_VALUE)
@@ -125,5 +188,7 @@ void injector::inject_btn_click_handler()
         }
     } while (Process32Next(hSnapShot, &pe));
     CloseHandle(hSnapShot);
+    */
     ui.pushButton_inject->setEnabled(FALSE);
+    free(pe);
 }

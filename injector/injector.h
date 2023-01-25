@@ -2,6 +2,8 @@
 
 #include <QtWidgets/QMainWindow>
 #include "ui_injector.h"
+#include <Windows.h>
+#include <TlHelp32.h>
 
 class injector : public QMainWindow
 {
@@ -10,6 +12,11 @@ class injector : public QMainWindow
 public:
     injector(QWidget *parent = nullptr);
     ~injector();
+
+    QString process_name;
+    QString dll_path;
+    QString temp = "";
+    bool get_process_list(PROCESSENTRY32* proc_list, int size, int *return_size);
 
 public slots:
     void process_refresh_btn_click_handler();
